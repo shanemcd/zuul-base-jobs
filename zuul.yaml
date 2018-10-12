@@ -12,7 +12,7 @@
     pre-run: playbooks/base/pre.yaml
     post-run: playbooks/base/post-ssh.yaml
     roles:
-      - zuul: openstack-infra/zuul-jobs
+      - zuul: shanemcd/zuul-jobs
     timeout: 1800
 
 - job:
@@ -24,5 +24,32 @@
     pre-run: playbooks/base-test/pre.yaml
     post-run: playbooks/base-test/post-ssh.yaml
     roles:
-      - zuul: openstack-infra/zuul-jobs
+      - zuul: shanemcd/zuul-jobs
     timeout: 1800
+
+- pipeline:
+    name: check
+    description: |
+      Newly opened pull requests enter this pipeline to receive an
+      initial verification
+    manager: independent
+    trigger:
+      github:
+        - event: pull_request
+          action:
+            - opened
+            - changed
+            - reopened
+        - event: pull_request
+          action: comment
+          comment: (?i)^\s*recheck\s*$
+    start:
+      github:
+        status: pending
+        comment: false
+    success:
+      github:
+        status: 'success'
+    failure:
+      github:
+        status: 'failure'
